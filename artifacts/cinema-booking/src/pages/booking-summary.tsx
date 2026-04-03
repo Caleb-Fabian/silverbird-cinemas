@@ -10,8 +10,12 @@ import { Ticket, CreditCard, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
+function formatNaira(amount: number) {
+  return `₦${amount.toLocaleString('en-NG')}`;
+}
+
 export default function BookingSummary() {
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { booking, clearBooking } = useBooking();
   const { toast } = useToast();
 
@@ -23,13 +27,14 @@ export default function BookingSummary() {
 
   if (booking.selectedSeats.length === 0) return null;
 
-  const movie = mockMovies.find(m => m.id === booking.movieId) || mockMovies[0]; // Fallback for dev safety
+  const movie = mockMovies.find(m => m.id === booking.movieId) || mockMovies[0];
   const showtime = mockShowtimes.find(s => s.id === booking.showtimeId) || mockShowtimes[0];
   const cinema = mockCinemas.find(c => c.id === showtime?.cinemaId) || mockCinemas[0];
 
   const subtotal = booking.totalPrice;
-  const fees = booking.selectedSeats.length * 1.5; // $1.50 fee per ticket
+  const fees = booking.selectedSeats.length * 500; // ₦500 convenience fee per ticket
   const total = subtotal + fees;
+  const pricePerTicket = booking.selectedSeats.length > 0 ? subtotal / booking.selectedSeats.length : 3500;
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +86,8 @@ export default function BookingSummary() {
               
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tickets ({booking.selectedSeats.length} × ${subtotal / booking.selectedSeats.length})</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="text-muted-foreground">Tickets ({booking.selectedSeats.length} × {formatNaira(pricePerTicket)})</span>
+                  <span className="font-medium">{formatNaira(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Seats</span>
@@ -90,11 +95,11 @@ export default function BookingSummary() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Convenience Fee</span>
-                  <span className="font-medium">${fees.toFixed(2)}</span>
+                  <span className="font-medium">{formatNaira(fees)}</span>
                 </div>
                 <div className="border-t pt-4 flex justify-between items-center text-lg">
                   <span className="font-bold">Total Amount</span>
-                  <span className="font-bold text-2xl text-primary">${total.toFixed(2)}</span>
+                  <span className="font-bold text-2xl text-primary">{formatNaira(total)}</span>
                 </div>
               </div>
             </div>
@@ -141,7 +146,7 @@ export default function BookingSummary() {
                 
                 <div className="pt-4">
                   <Button type="submit" size="lg" className="w-full h-12 text-lg" data-testid="btn-confirm-pay">
-                    Pay ${total.toFixed(2)}
+                    Pay {formatNaira(total)}
                   </Button>
                   <p className="text-center flex justify-center items-center gap-1 text-xs text-muted-foreground mt-4">
                     <CheckCircle2 className="h-3 w-3" /> Secure encrypted payment

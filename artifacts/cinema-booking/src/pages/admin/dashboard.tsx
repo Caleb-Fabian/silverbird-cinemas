@@ -3,7 +3,11 @@ import { mockBookings, mockMovies, mockShowtimes } from "@/data/mockData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Ticket, Film, CalendarClock } from "lucide-react";
+import { Banknote, Ticket, Film, CalendarClock } from "lucide-react";
+
+function formatNaira(amount: number) {
+  return `₦${amount.toLocaleString('en-NG')}`;
+}
 
 export default function AdminDashboard() {
   const totalRevenue = mockBookings.reduce((sum, b) => sum + (b.status === 'confirmed' ? b.totalPrice : 0), 0);
@@ -23,10 +27,10 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{formatNaira(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground mt-1">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -88,7 +92,7 @@ export default function AdminDashboard() {
                     <TableCell className="font-mono text-xs">{booking.id}</TableCell>
                     <TableCell>{booking.customerName}</TableCell>
                     <TableCell>{movie?.title}</TableCell>
-                    <TableCell>${booking.totalPrice.toFixed(2)}</TableCell>
+                    <TableCell>{formatNaira(booking.totalPrice)}</TableCell>
                     <TableCell>
                       <Badge variant={booking.status === 'confirmed' ? 'default' : 'destructive'} className="capitalize">
                         {booking.status}

@@ -113,7 +113,7 @@ export default function Home() {
       
       <footer className="py-8 border-t bg-background">
         <div className="container mx-auto px-4 md:px-6 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} CineBook. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Silverbird Cinemas. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -3,8 +3,11 @@ import { mockBookings, mockMovies, mockCinemas, mockShowtimes } from "@/data/moc
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+function formatNaira(amount: number) {
+  return `₦${amount.toLocaleString('en-NG')}`;
+}
+
 export default function AdminBookings() {
-  // Sort bookings newest first
   const sortedBookings = [...mockBookings].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -55,7 +58,7 @@ export default function AdminBookings() {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell className="font-bold">${booking.totalPrice.toFixed(2)}</TableCell>
+                  <TableCell className="font-bold">{formatNaira(booking.totalPrice)}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={booking.status === 'confirmed' ? 'default' : 'destructive'} 

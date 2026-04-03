@@ -175,9 +175,21 @@ export const mockMovies: Movie[] = [
 ];
 
 export const mockCinemas: Cinema[] = [
-  { id: "c1", name: "CineBook Grand Downtown", address: "123 Main St, Metro City" },
-  { id: "c2", name: "CineBook Westside Plaza", address: "456 West Ave, Metro City" },
-  { id: "c3", name: "CineBook North Hills Lounge", address: "789 North Blvd, Metro City" }
+  {
+    id: "c1",
+    name: "Silverbird Galleria Lagos",
+    address: "133 Ahmadu Bello Way, Victoria Island, Lagos"
+  },
+  {
+    id: "c2",
+    name: "Silverbird Abuja",
+    address: "Silverbird Galleria, 1161 Memorial Drive, Central Business District, Abuja"
+  },
+  {
+    id: "c3",
+    name: "Silverbird Port Harcourt",
+    address: "GRA Phase 2, Peter Odili Road, Port Harcourt, Rivers State"
+  }
 ];
 
 export const mockShowtimes: Showtime[] = [
@@ -190,9 +202,14 @@ export const mockShowtimes: Showtime[] = [
 ];
 
 export const mockBookings: Booking[] = [
-  { id: "b1", customerName: "Alice Smith", movieId: "m1", cinemaId: "c1", showtimeId: "s1", seats: ["F5", "F6"], totalPrice: 30, date: "2024-11-19", status: "confirmed" },
-  { id: "b2", customerName: "Bob Jones", movieId: "m2", cinemaId: "c1", showtimeId: "s4", seats: ["D10", "D11", "D12"], totalPrice: 45, date: "2024-11-19", status: "confirmed" },
-  { id: "b3", customerName: "Charlie Brown", movieId: "m5", cinemaId: "c3", showtimeId: "s6", seats: ["G1"], totalPrice: 15, date: "2024-11-18", status: "cancelled" },
-  { id: "b4", customerName: "Diana Prince", movieId: "m1", cinemaId: "c2", showtimeId: "s3", seats: ["H8", "H9"], totalPrice: 30, date: "2024-11-18", status: "confirmed" },
-  { id: "b5", customerName: "Evan Wright", movieId: "m1", cinemaId: "c1", showtimeId: "s2", seats: ["K1", "K2", "K3", "K4"], totalPrice: 60, date: "2024-11-17", status: "confirmed" }
+  { id: "b1", customerName: "Amaka Okafor", movieId: "m1", cinemaId: "c1", showtimeId: "s1", seats: ["F5", "F6"], totalPrice: 7000, date: "2024-11-19", status: "confirmed" },
+  { id: "b2", customerName: "Chidi Nwosu", movieId: "m2", cinemaId: "c1", showtimeId: "s4", seats: ["D10", "D11", "D12"], totalPrice: 10500, date: "2024-11-19", status: "confirmed" },
+  { id: "b3", customerName: "Fatima Abdullahi", movieId: "m5", cinemaId: "c3", showtimeId: "s6", seats: ["G1"], totalPrice: 3500, date: "2024-11-18", status: "cancelled" },
+  { id: "b4", customerName: "Emeka Adeleke", movieId: "m1", cinemaId: "c2", showtimeId: "s3", seats: ["H8", "H9"], totalPrice: 7000, date: "2024-11-18", status: "confirmed" },
+  { id: "b5", customerName: "Ngozi Okonkwo", movieId: "m1", cinemaId: "c1", showtimeId: "s2", seats: ["K1", "K2", "K3", "K4"], totalPrice: 14000, date: "2024-11-17", status: "confirmed" },
+  { id: "b6", customerName: "Tunde Bakare", movieId: "m5", cinemaId: "c3", showtimeId: "s5", seats: ["B3", "B4"], totalPrice: 7000, date: "2024-11-17", status: "confirmed" },
+  { id: "b7", customerName: "Chisom Eze", movieId: "m7", cinemaId: "c2", showtimeId: "s3", seats: ["E6", "E7", "E8"], totalPrice: 10500, date: "2024-11-16", status: "confirmed" },
+  { id: "b8", customerName: "Aisha Musa", movieId: "m2", cinemaId: "c1", showtimeId: "s4", seats: ["C2"], totalPrice: 3500, date: "2024-11-16", status: "confirmed" },
+  { id: "b9", customerName: "Obinna Umeh", movieId: "m8", cinemaId: "c3", showtimeId: "s5", seats: ["J9", "J10"], totalPrice: 7000, date: "2024-11-15", status: "cancelled" },
+  { id: "b10", customerName: "Yewande Adeyemi", movieId: "m1", cinemaId: "c1", showtimeId: "s1", seats: ["A1", "A2", "A3"], totalPrice: 10500, date: "2024-11-15", status: "confirmed" },
 ];

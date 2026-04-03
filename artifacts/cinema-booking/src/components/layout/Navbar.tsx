@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { Film, User } from "lucide-react";
+import { User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import silverbirdLogo from "@assets/silverbird-logo_1775205994792.png";
 
 export function Navbar() {
   const [location] = useLocation();
@@ -10,8 +11,12 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-2" data-testid="link-home">
-          <Film className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold tracking-tight text-foreground">CineBook</span>
+          <img
+            src={silverbirdLogo}
+            alt="Silverbird Cinemas"
+            className="h-9 w-auto mix-blend-multiply dark:mix-blend-screen"
+          />
+          <span className="text-xl font-bold tracking-tight text-foreground">Silverbird Cinemas</span>
         </Link>
         
         <nav className="hidden md:flex gap-6">

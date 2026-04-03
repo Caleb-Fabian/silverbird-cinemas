@@ -36,7 +36,7 @@ export default function AdminLogin() {
             <Film className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-center">Admin Portal</h1>
-          <p className="text-muted-foreground text-center mt-1">Sign in to manage CineBook</p>
+          <p className="text-muted-foreground text-center mt-1">Sign in to manage Silverbird Cinemas</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

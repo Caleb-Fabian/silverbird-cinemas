@@ -9,18 +9,21 @@ import { ArrowLeft, MonitorPlay } from "lucide-react";
 
 const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
 const SEATS_PER_ROW = 12;
-const PRICE_PER_SEAT = 15;
+const PRICE_PER_SEAT = 3500;
+
+function formatNaira(amount: number) {
+  return `₦${amount.toLocaleString('en-NG')}`;
+}
 
 export default function SeatSelection() {
   const { movieId, showtimeId } = useParams<{ movieId: string, showtimeId: string }>();
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { booking, updateSeats } = useBooking();
   
   const movie = mockMovies.find(m => m.id === movieId);
   const showtime = mockShowtimes.find(s => s.id === showtimeId);
   const cinema = mockCinemas.find(c => c.id === showtime?.cinemaId);
 
-  // Generate some mock booked seats based on showtimeId length so it's deterministic
   const [bookedSeats] = useState<string[]>(() => {
     const booked = [];
     const hash = showtimeId?.length || 5;
@@ -98,7 +101,6 @@ export default function SeatSelection() {
                         const isBooked = bookedSeats.includes(seatId);
                         const isSelected = selectedSeats.includes(seatId);
                         
-                        // Add an aisle
                         const addAisle = seatNum === 6;
                         
                         return (
@@ -168,13 +170,13 @@ export default function SeatSelection() {
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-muted-foreground">Price per seat</span>
-                  <span>${PRICE_PER_SEAT.toFixed(2)}</span>
+                  <span>{formatNaira(PRICE_PER_SEAT)}</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mb-6">
                 <span className="text-lg font-semibold">Total</span>
-                <span className="text-2xl font-bold text-primary">${(selectedSeats.length * PRICE_PER_SEAT).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">{formatNaira(selectedSeats.length * PRICE_PER_SEAT)}</span>
               </div>
 
               <Button 
