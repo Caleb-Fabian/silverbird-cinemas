@@ -1,0 +1,118 @@
+Build a modern cinema ticket booking frontend using **Next.js (App Router) + TypeScript + Tailwind CSS**.
+
+The website must be **one application with two faces**:
+
+* Public booking interface
+* Admin dashboard (accessible via `/admin` route)
+
+### Design Requirements
+
+* Modern, clean UI similar to premium booking platforms
+* Color scheme: **Light blue and white** (primary theme)
+* Dark mode support: **Black background with light blue accents**
+* Use Tailwind CSS for styling
+* Use responsive design (mobile-first)
+* Smooth animations using Framer Motion
+* Soft shadows, rounded corners (2xl), and clean spacing
+* Use grid layouts where appropriate
+* Include hover states and transitions
+
+### Pages to Create (Public)
+
+1. Homepage
+
+   * Hero section with featured movie
+   * "Now Showing" movies grid
+   * "Coming Soon" section
+   * Cinema locations selector
+   * CTA to book tickets
+
+2. Movies Listing Page
+
+   * Grid of movie cards
+   * Poster, title, duration, rating
+   * Filter by location
+   * Search movies
+
+3. Movie Details Page
+
+   * Large movie banner
+   * Description
+   * Showtimes by cinema
+   * "Select Time" buttons
+   * Trailer modal popup
+
+4. Seat Selection Page
+
+   * Seat grid layout
+   * Available, selected, booked states
+   * Ticket price display
+   * Continue to booking button
+
+5. Booking Summary Page
+
+   * Selected seats
+   * Movie details
+   * Total price
+   * Confirm booking button
+
+### Admin Dashboard (/admin)
+
+* Admin login page
+* Dashboard layout with sidebar
+* Add Movie form
+* Manage Movies table
+* Add Showtimes form
+* View Bookings table
+
+### UI Components
+
+* Navbar (with dark mode toggle)
+* MovieCard
+* ShowtimeButton
+* SeatGrid
+* BookingSummary
+* Sidebar (admin)
+* Modal (for trailer)
+* ThemeToggle (light/dark mode)
+
+### Dark Mode
+
+* Implement using Tailwind "class" strategy
+* Toggle stored in localStorage
+* Light mode: white + light blue
+* Dark mode: black + light blue accents
+* Smooth transition between modes
+
+### Layout Structure
+
+Use Next.js App Router with this structure:
+
+app/
+
+* layout.tsx
+* page.tsx
+* movies/
+* movie/[id]/
+* booking/
+* admin/
+* admin/login/
+* admin/dashboard/
+
+### Additional Requirements
+
+* Use TypeScript types for movie, showtime, and seat data
+* Use placeholder/mock data (no backend yet)
+* Use reusable components
+* Make UI look production-ready
+* Ensure mobile and desktop responsiveness
+
+Return:
+
+1. Folder structure
+2. Main layout file
+3. Homepage UI
+4. Movie card component
+5. Dark mode implementation
+6. Admin layout
+7. Tailwind config if needed
