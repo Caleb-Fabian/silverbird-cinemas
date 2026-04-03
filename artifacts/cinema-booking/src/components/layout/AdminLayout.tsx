@@ -9,7 +9,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import silverbirdLogo from "@assets/silverbird-logo_1775205994792.png";
+import silverbirdLogo from "@assets/ChatGPT_Image_Apr_3,_2026,_10_00_39_AM_1775206879120.png";
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -34,14 +34,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-[100dvh] w-full bg-muted/20">
-      {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-64 flex-col border-r bg-background sm:flex">
         <div className="flex h-14 items-center justify-between border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <img
               src={silverbirdLogo}
               alt="Silverbird Cinemas"
-              className="h-7 w-auto mix-blend-multiply dark:mix-blend-screen"
+              className="h-7 w-auto mix-blend-screen"
             />
             <span className="text-sm">Silverbird Admin</span>
           </Link>
@@ -75,7 +74,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 sm:pl-64">
         <div className="p-4 sm:p-8">
           {children}

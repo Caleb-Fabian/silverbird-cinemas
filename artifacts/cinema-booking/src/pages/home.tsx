@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Navbar } from "@/components/layout/Navbar";
 import { MovieCard } from "@/components/movie/MovieCard";
-import { mockMovies } from "@/data/mockData";
+import { Movie, mockMovies } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PlayCircle, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const [location, setLocation] = useLocation();
-  const featuredMovie = mockMovies.find(m => m.status === 'now-showing');
-  const nowShowing = mockMovies.filter(m => m.status === 'now-showing').slice(0, 4);
-  const comingSoon = mockMovies.filter(m => m.status === 'coming-soon').slice(0, 4);
+  const nowShowing = mockMovies.filter(m => m.status === 'now-showing');
+  const comingSoon = mockMovies.filter(m => m.status === 'coming-soon');
+
+  const [featuredMovie, setFeaturedMovie] = useState<Movie>(nowShowing[0]);
+
+  const handleSelectMovie = (movie: Movie) => {
+    if (movie.id !== featuredMovie.id) {
+      setFeaturedMovie(movie);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
@@ -19,60 +26,114 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        {featuredMovie && (
-          <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden">
-            <div className="absolute inset-0">
+        <section className="relative h-[75vh] min-h-[500px] w-full overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={featuredMovie.id}
+              className="absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <img 
-                src={featuredMovie.banner} 
+                src={featuredMovie.banner}
                 alt={featuredMovie.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (target.src !== featuredMovie.bannerFallback) {
+                    target.src = featuredMovie.bannerFallback;
+                  }
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent" />
-            </div>
-            
-            <div className="container relative h-full flex items-end pb-20 px-4 md:px-6 mx-auto">
+              {/* Reduced overlay opacity for more visible banner */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent/10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/20 to-transparent" />
+            </motion.div>
+          </AnimatePresence>
+          
+          <div className="container relative h-full flex items-end pb-20 px-4 md:px-6 mx-auto">
+            <AnimatePresence mode="wait">
               <motion.div 
-                initial={{ opacity: 0, y: 30 }}
+                key={featuredMovie.id}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.45 }}
                 className="max-w-2xl"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <span className="px-3 py-1 bg-primary text-primary-foreground text-sm font-bold rounded-full">
-                    Now Playing
+                    {featuredMovie.status === 'now-showing' ? 'Now Playing' : 'Coming Soon'}
                   </span>
-                  <span className="flex items-center gap-1 text-yellow-500 font-medium">
+                  <span className="flex items-center gap-1 text-yellow-400 font-semibold drop-shadow">
                     ★ {featuredMovie.imdbScore}
                   </span>
+                  <span className="text-sm text-white/70 font-medium">
+                    {featuredMovie.genre.slice(0, 2).join(' · ')}
+                  </span>
                 </div>
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-foreground tracking-tight">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 text-white tracking-tight drop-shadow-lg">
                   {featuredMovie.title}
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground mb-8 line-clamp-2 md:line-clamp-3">
+                <p className="text-base md:text-lg text-white/80 mb-8 line-clamp-2 max-w-xl drop-shadow">
                   {featuredMovie.description}
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link href={`/movies/${featuredMovie.id}`}>
-                    <Button size="lg" className="h-12 px-8 text-lg rounded-full">
+                    <Button size="lg" className="h-12 px-8 text-base rounded-full shadow-lg shadow-primary/30" data-testid="btn-hero-book">
                       Book Tickets
                     </Button>
                   </Link>
-                  <Button size="lg" variant="outline" className="h-12 px-8 text-lg rounded-full bg-background/20 backdrop-blur-md border-white/20 hover:bg-background/40">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 px-8 text-base rounded-full bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
+                    data-testid="btn-hero-trailer"
+                  >
                     <PlayCircle className="mr-2 h-5 w-5" /> Watch Trailer
                   </Button>
                 </div>
               </motion.div>
-            </div>
-          </section>
-        )}
+            </AnimatePresence>
+          </div>
+
+          {/* Mini poster strip at bottom right */}
+          <div className="absolute bottom-4 right-4 hidden lg:flex items-center gap-2">
+            {nowShowing.slice(0, 4).map((movie) => (
+              <button
+                key={movie.id}
+                onClick={() => handleSelectMovie(movie)}
+                className={`relative h-16 w-11 rounded overflow-hidden border-2 transition-all duration-200 ${
+                  featuredMovie.id === movie.id
+                    ? 'border-primary scale-110 shadow-lg shadow-primary/40'
+                    : 'border-white/20 opacity-60 hover:opacity-100 hover:border-white/50'
+                }`}
+                data-testid={`btn-mini-poster-${movie.id}`}
+              >
+                <img
+                  src={movie.poster}
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== movie.posterFallback) {
+                      target.src = movie.posterFallback;
+                    }
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* Now Showing Section */}
-        <section className="py-16 md:py-24 container mx-auto px-4 md:px-6">
+        <section className="py-16 md:py-20 container mx-auto px-4 md:px-6">
           <div className="flex items-end justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold tracking-tight mb-2">Now Showing</h2>
-              <p className="text-muted-foreground">Book tickets for movies currently in theaters.</p>
+              <p className="text-muted-foreground">Click a movie to preview it above, or hit Book Now to get tickets.</p>
             </div>
             <Link href="/movies" className="hidden md:flex">
               <Button variant="ghost" className="gap-2">
@@ -82,8 +143,13 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {nowShowing.map((movie, idx) => (
-              <MovieCard key={movie.id} movie={movie} index={idx} />
+            {nowShowing.slice(0, 4).map((movie, idx) => (
+              <MovieCard
+                key={movie.id}
+                movie={movie}
+                index={idx}
+                onSelect={handleSelectMovie}
+              />
             ))}
           </div>
           
@@ -95,7 +161,7 @@ export default function Home() {
         </section>
 
         {/* Coming Soon Section */}
-        <section className="py-16 md:py-24 bg-muted/30">
+        <section className="py-16 md:py-20 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mb-8">
               <h2 className="text-3xl font-bold tracking-tight mb-2">Coming Soon</h2>
@@ -103,8 +169,13 @@ export default function Home() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {comingSoon.map((movie, idx) => (
-                <MovieCard key={movie.id} movie={movie} index={idx} />
+              {comingSoon.slice(0, 4).map((movie, idx) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  index={idx}
+                  onSelect={handleSelectMovie}
+                />
               ))}
             </div>
           </div>

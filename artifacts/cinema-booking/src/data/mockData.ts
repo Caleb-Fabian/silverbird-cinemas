@@ -9,7 +9,9 @@ export interface Movie {
   director: string;
   cast: string[];
   poster: string;
+  posterFallback: string;
   banner: string;
+  bannerFallback: string;
   trailerUrl: string;
   status: 'now-showing' | 'coming-soon';
   releaseDate: string;
@@ -54,8 +56,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 8.8,
     director: "Denis Villeneuve",
     cast: ["Timothée Chalamet", "Zendaya", "Rebecca Ferguson"],
-    poster: "https://picsum.photos/seed/m1/400/600",
-    banner: "https://picsum.photos/seed/m1-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+    posterFallback: "https://picsum.photos/seed/m1/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    bannerFallback: "https://picsum.photos/seed/m1-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/Way9Dexny3w",
     status: "now-showing",
     releaseDate: "2024-03-01"
@@ -70,8 +74,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 8.4,
     director: "Christopher Nolan",
     cast: ["Cillian Murphy", "Emily Blunt", "Matt Damon"],
-    poster: "https://picsum.photos/seed/m2/400/600",
-    banner: "https://picsum.photos/seed/m2-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+    posterFallback: "https://picsum.photos/seed/m2/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/rLb2cwF3Pazuxaj0sRXQ037tGI1.jpg",
+    bannerFallback: "https://picsum.photos/seed/m2-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/uYPbbksJxIg",
     status: "now-showing",
     releaseDate: "2023-07-21"
@@ -86,8 +92,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 7.9,
     director: "George Miller",
     cast: ["Anya Taylor-Joy", "Chris Hemsworth", "Tom Burke"],
-    poster: "https://picsum.photos/seed/m3/400/600",
-    banner: "https://picsum.photos/seed/m3-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/iADOJ8Zymht2JPMoy3R7xceZprc.jpg",
+    posterFallback: "https://picsum.photos/seed/m3/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/jtAI6OJIWLWiRItNSZoWjrsUtmi.jpg",
+    bannerFallback: "https://picsum.photos/seed/m3-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/XJMuhwV5pKQ",
     status: "coming-soon",
     releaseDate: "2024-05-24"
@@ -102,8 +110,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 8.0,
     director: "Kelsey Mann",
     cast: ["Amy Poehler", "Phyllis Smith", "Lewis Black"],
-    poster: "https://picsum.photos/seed/m4/400/600",
-    banner: "https://picsum.photos/seed/m4-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg",
+    posterFallback: "https://picsum.photos/seed/m4/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/tg83U7A6HoJpKElEEUE7EFLqzMR.jpg",
+    bannerFallback: "https://picsum.photos/seed/m4-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/LEjhY15eCx0",
     status: "coming-soon",
     releaseDate: "2024-06-14"
@@ -118,8 +128,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 8.2,
     director: "Shawn Levy",
     cast: ["Ryan Reynolds", "Hugh Jackman", "Emma Corrin"],
-    poster: "https://picsum.photos/seed/m5/400/600",
-    banner: "https://picsum.photos/seed/m5-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+    posterFallback: "https://picsum.photos/seed/m5/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/yDHYTfA3R0jFYba16jBB1ef8oIt.jpg",
+    bannerFallback: "https://picsum.photos/seed/m5-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/73_1biukkMQ",
     status: "now-showing",
     releaseDate: "2024-07-26"
@@ -134,8 +146,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 7.8,
     director: "Ridley Scott",
     cast: ["Paul Mescal", "Denzel Washington", "Pedro Pascal"],
-    poster: "https://picsum.photos/seed/m6/400/600",
-    banner: "https://picsum.photos/seed/m6-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg",
+    posterFallback: "https://picsum.photos/seed/m6/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/euYIwmwkmz95mnXvufEmbnd8qrd.jpg",
+    bannerFallback: "https://picsum.photos/seed/m6-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/4rgYUipGJNo",
     status: "coming-soon",
     releaseDate: "2024-11-22"
@@ -150,8 +164,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 7.2,
     director: "Wes Ball",
     cast: ["Owen Teague", "Freya Allan", "Kevin Durand"],
-    poster: "https://picsum.photos/seed/m7/400/600",
-    banner: "https://picsum.photos/seed/m7-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/gKkl37BQuKTanygYQG1pyYgLVgf.jpg",
+    posterFallback: "https://picsum.photos/seed/m7/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/fqv8v6AycXKsivp1T5yKtLbGXce.jpg",
+    bannerFallback: "https://picsum.photos/seed/m7-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/KdqHQJA6IPI",
     status: "now-showing",
     releaseDate: "2024-05-10"
@@ -166,8 +182,10 @@ export const mockMovies: Movie[] = [
     imdbScore: 6.9,
     director: "Michael Sarnoski",
     cast: ["Lupita Nyong'o", "Joseph Quinn", "Alex Wolff"],
-    poster: "https://picsum.photos/seed/m8/400/600",
-    banner: "https://picsum.photos/seed/m8-banner/1920/600",
+    poster: "https://image.tmdb.org/t/p/w500/fFokPdCFPBfFGlq67GJxiGnMnzH.jpg",
+    posterFallback: "https://picsum.photos/seed/m8/400/600",
+    banner: "https://image.tmdb.org/t/p/w1280/mSMkIe74gbXFkGNNSNV1iyOT9Ep.jpg",
+    bannerFallback: "https://picsum.photos/seed/m8-banner/1920/600",
     trailerUrl: "https://www.youtube.com/embed/YPY7J-flzE8",
     status: "now-showing",
     releaseDate: "2024-06-28"

@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import silverbirdLogo from "@assets/silverbird-logo_1775205994792.png";
+import silverbirdLogo from "@assets/ChatGPT_Image_Apr_3,_2026,_10_00_39_AM_1775206879120.png";
 
 export function Navbar() {
   const [location] = useLocation();
@@ -14,7 +14,7 @@ export function Navbar() {
           <img
             src={silverbirdLogo}
             alt="Silverbird Cinemas"
-            className="h-9 w-auto mix-blend-multiply dark:mix-blend-screen"
+            className="h-9 w-auto mix-blend-screen"
           />
           <span className="text-xl font-bold tracking-tight text-foreground">Silverbird Cinemas</span>
         </Link>

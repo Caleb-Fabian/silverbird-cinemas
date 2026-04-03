@@ -39,6 +39,10 @@ export default function MovieDetails() {
           src={movie.banner} 
           alt={movie.title}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            const t = e.currentTarget;
+            if (t.src !== movie.bannerFallback) t.src = movie.bannerFallback;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
       </div>
@@ -52,7 +56,15 @@ export default function MovieDetails() {
             className="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4"
           >
             <div className="rounded-xl overflow-hidden shadow-xl border border-border/50">
-              <img src={movie.poster} alt={movie.title} className="w-full h-auto aspect-[2/3] object-cover" />
+              <img
+                src={movie.poster}
+                alt={movie.title}
+                className="w-full h-auto aspect-[2/3] object-cover"
+                onError={(e) => {
+                  const t = e.currentTarget;
+                  if (t.src !== movie.posterFallback) t.src = movie.posterFallback;
+                }}
+              />
             </div>
             
             <Dialog>

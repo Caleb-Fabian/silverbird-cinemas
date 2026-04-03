@@ -8,29 +8,44 @@ import { Button } from "@/components/ui/button";
 interface MovieCardProps {
   movie: Movie;
   index?: number;
+  onSelect?: (movie: Movie) => void;
 }
 
-export function MovieCard({ movie, index = 0 }: MovieCardProps) {
+export function MovieCard({ movie, index = 0, onSelect }: MovieCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-300"
+      className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer"
       data-testid={`card-movie-${movie.id}`}
+      onClick={() => onSelect?.(movie)}
     >
-      <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+      <div className="aspect-[2/3] w-full overflow-hidden bg-muted relative">
         <img
           src={movie.poster}
           alt={movie.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (target.src !== movie.posterFallback) {
+              target.src = movie.posterFallback;
+            }
+          }}
         />
         <div className="absolute top-2 right-2 flex gap-2">
           <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-foreground">
             {movie.rating}
           </Badge>
         </div>
+        {onSelect && (
+          <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <span className="text-white text-sm font-semibold bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-sm">
+              Preview
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="flex flex-1 flex-col p-4">
@@ -57,8 +72,8 @@ export function MovieCard({ movie, index = 0 }: MovieCardProps) {
           <span>{movie.duration} min</span>
         </div>
         
-        <Link href={`/movies/${movie.id}`}>
-          <Button className="w-full transition-all group-hover:bg-primary/90">
+        <Link href={`/movies/${movie.id}`} onClick={(e) => e.stopPropagation()}>
+          <Button className="w-full transition-all group-hover:bg-primary/90" data-testid={`btn-book-${movie.id}`}>
             {movie.status === 'now-showing' ? 'Book Now' : 'View Details'}
           </Button>
         </Link>
