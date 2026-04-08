@@ -27,15 +27,18 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/movies" component={Movies} />
       <Route path="/movies/:id" component={MovieDetails} />
-      <Route path="/booking/seats/:movieId/:showtimeId" component={SeatSelection} />
+      <Route
+        path="/booking/seats/:movieId/:showtimeId"
+        component={SeatSelection}
+      />
       <Route path="/booking/summary" component={BookingSummary} />
-      
+
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/movies" component={AdminMovies} />
       <Route path="/admin/showtimes" component={AdminShowtimes} />
       <Route path="/admin/bookings" component={AdminBookings} />
-      
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -44,7 +47,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="cinebook-theme">
+      <ThemeProvider
+        defaultTheme="dark"
+        storageKey="cinebook-theme"
+      >
         <AuthProvider>
           <BookingProvider>
             <TooltipProvider>

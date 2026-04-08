@@ -1,7 +1,7 @@
 import { useParams, Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
-import { mockMovies, mockShowtimes, mockCinemas } from "@/data/mockData";
+import { fetchMovie, fetchShowtimesByMovie } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PlayCircle, Clock, Calendar, MapPin, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -10,33 +10,52 @@ import { motion } from "framer-motion";
 
 export default function MovieDetails() {
   const { id } = useParams<{ id: string }>();
-  const [location, setLocation] = useLocation();
-  const movie = mockMovies.find(m => m.id === id);
+  const [, setLocation] = useLocation();
 
-  if (!movie) {
+  const { data: movie, isLoading: movieLoading, isError: movieError } = useQuery({
+    queryKey: ["movie", id],
+    queryFn: () => fetchMovie(id),
+    enabled: !!id,
+  });
+
+  const { data: showtimes = [] } = useQuery({
+    queryKey: ["showtimes", id],
+    queryFn: () => fetchShowtimesByMovie(id),
+    enabled: !!id && movie?.status === "now-showing",
+  });
+
+  if (movieLoading) {
     return (
-      <div className="min-h-[100dvh] flex flex-col items-center justify-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center">
+        <p className="text-muted-foreground">Loading movie...</p>
+      </div>
+    );
+  }
+
+  if (movieError || !movie) {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold mb-4">Movie not found</h1>
         <Button onClick={() => setLocation("/movies")}>Back to Movies</Button>
       </div>
     );
   }
 
-  const movieShowtimes = mockShowtimes.filter(s => s.movieId === movie.id);
-  const showtimesByCinema = movieShowtimes.reduce((acc, showtime) => {
+  // Group showtimes by cinemaId
+  const showtimesByCinema = showtimes.reduce((acc, showtime) => {
     if (!acc[showtime.cinemaId]) acc[showtime.cinemaId] = [];
     acc[showtime.cinemaId].push(showtime);
     return acc;
-  }, {} as Record<string, typeof movieShowtimes>);
+  }, {} as Record<string, typeof showtimes>);
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background">
+    <div className="min-h-dvh flex flex-col bg-background">
       <Navbar />
-      
+
       {/* Banner */}
-      <div className="relative h-[50vh] min-h-[400px] w-full">
-        <img 
-          src={movie.banner} 
+      <div className="relative h-[50vh] min-h-100 w-full">
+        <img
+          src={movie.banner}
           alt={movie.title}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -44,13 +63,13 @@ export default function MovieDetails() {
             if (t.src !== movie.bannerFallback) t.src = movie.bannerFallback;
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
+        <div className="absolute inset-0 bg-linear-to-t from-background via-background/80 to-background/20" />
       </div>
 
       <main className="flex-1 container mx-auto px-4 md:px-6 -mt-32 relative z-10 pb-20">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Poster & CTA */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full md:w-1/3 lg:w-1/4 flex flex-col gap-4"
@@ -59,14 +78,14 @@ export default function MovieDetails() {
               <img
                 src={movie.poster}
                 alt={movie.title}
-                className="w-full h-auto aspect-[2/3] object-cover"
+                className="w-full h-auto aspect-2/3 object-cover"
                 onError={(e) => {
                   const t = e.currentTarget;
                   if (t.src !== movie.posterFallback) t.src = movie.posterFallback;
                 }}
               />
             </div>
-            
+
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="w-full" variant="outline" size="lg">
@@ -75,13 +94,13 @@ export default function MovieDetails() {
               </DialogTrigger>
               <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90 border-none">
                 <div className="aspect-video w-full">
-                  <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src={movie.trailerUrl} 
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={movie.trailerUrl}
                     title={`${movie.title} Trailer`}
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   ></iframe>
                 </div>
@@ -90,7 +109,7 @@ export default function MovieDetails() {
           </motion.div>
 
           {/* Details */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
@@ -98,7 +117,7 @@ export default function MovieDetails() {
           >
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="secondary" className="text-sm px-3 py-1 bg-primary/10 text-primary border-primary/20">
-                {movie.status === 'now-showing' ? 'Now Showing' : 'Coming Soon'}
+                {movie.status === "now-showing" ? "Now Showing" : "Coming Soon"}
               </Badge>
               <Badge variant="outline" className="text-sm px-3 py-1">
                 {movie.rating}
@@ -110,7 +129,7 @@ export default function MovieDetails() {
             </div>
 
             <h1 className="text-4xl md:text-5xl font-extrabold mb-4">{movie.title}</h1>
-            
+
             <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6 text-sm">
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
@@ -118,7 +137,7 @@ export default function MovieDetails() {
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {new Date(movie.releaseDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                {new Date(movie.releaseDate).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
               </div>
               <div className="flex gap-2">
                 {movie.genre.map(g => (
@@ -141,19 +160,19 @@ export default function MovieDetails() {
             </div>
 
             {/* Showtimes */}
-            {movie.status === 'now-showing' && (
+            {movie.status === "now-showing" && (
               <div>
                 <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                  <TicketIcon className="h-6 w-6 text-primary" /> 
+                  <TicketIcon className="h-6 w-6 text-primary" />
                   Book Tickets
                 </h2>
-                
+
                 {Object.keys(showtimesByCinema).length > 0 ? (
                   <div className="flex flex-col gap-6">
-                    {Object.entries(showtimesByCinema).map(([cinemaId, showtimes]) => {
-                      const cinema = mockCinemas.find(c => c.id === cinemaId);
+                    {Object.entries(showtimesByCinema).map(([cinemaId, cts]) => {
+                      const cinema = cts[0]?.cinema;
                       if (!cinema) return null;
-                      
+
                       return (
                         <div key={cinemaId} className="bg-card border rounded-xl p-6 shadow-sm">
                           <div className="flex items-start gap-3 mb-4">
@@ -163,19 +182,19 @@ export default function MovieDetails() {
                               <p className="text-sm text-muted-foreground">{cinema.address}</p>
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-wrap gap-3">
-                            {showtimes.map(st => (
+                            {cts.map(st => (
                               <Link key={st.id} href={`/booking/seats/${movie.id}/${st.id}`}>
-                                <Button 
+                                <Button
                                   variant={st.availableSeats > 0 ? "outline" : "secondary"}
-                                  className={`flex flex-col h-auto py-2 px-4 ${st.availableSeats === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}`}
+                                  className={`flex flex-col h-auto py-2 px-4 ${st.availableSeats === 0 ? "opacity-50 cursor-not-allowed" : "hover:border-primary hover:bg-primary/5"}`}
                                   disabled={st.availableSeats === 0}
                                   data-testid={`btn-showtime-${st.id}`}
                                 >
                                   <span className="font-bold text-base">{st.time}</span>
                                   <span className="text-xs opacity-70">
-                                    {st.availableSeats > 0 ? `${st.availableSeats} seats left` : 'Sold Out'}
+                                    {st.availableSeats > 0 ? `${st.availableSeats} seats left` : "Sold Out"}
                                   </span>
                                 </Button>
                               </Link>
@@ -218,5 +237,5 @@ function TicketIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="M13 17v2" />
       <path d="M13 11v2" />
     </svg>
-  )
+  );
 }

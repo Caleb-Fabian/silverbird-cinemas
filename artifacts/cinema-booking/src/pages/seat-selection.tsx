@@ -64,7 +64,7 @@ export default function SeatSelection() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-background">
+    <div className="min-h-dvh flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 md:px-6 py-8">
@@ -79,7 +79,7 @@ export default function SeatSelection() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Seat Map Area */}
           <div className="flex-1 overflow-x-auto pb-8">
-            <div className="min-w-[600px] flex flex-col items-center">
+            <div className="min-w-150 flex flex-col items-center">
               
               {/* Screen */}
               <div className="w-4/5 mb-16 relative">
