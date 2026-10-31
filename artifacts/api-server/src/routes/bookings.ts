@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAdmin } from "../lib/auth";
 import { db, bookingsTable, showtimesTable, moviesTable, cinemasTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 
@@ -11,7 +12,7 @@ function generateBookingReference(): string {
   return result;
 }
 
-router.get("/bookings", async (_req, res) => {
+router.get("/bookings", requireAdmin, async (_req, res) => {
   try {
     const rows = await db
       .select({ booking: bookingsTable, showtime: showtimesTable, movie: moviesTable, cinema: cinemasTable })

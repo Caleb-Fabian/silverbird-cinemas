@@ -1,8 +1,50 @@
 // Backend origin, e.g. https://your-app.onrender.com. Empty in dev, where Vite proxies /api.
 const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 
-export function apiFetch(path: string, init?: RequestInit) {
-  return fetch(`${API_BASE}${path}`, init);
+const TOKEN_KEY = "adminToken";
+export const ADMIN_LOGOUT_EVENT = "admin-logout";
+
+export function getAdminToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // storage unavailable; the session just won't persist
+  }
+}
+
+export async function apiFetch(path: string, init?: RequestInit) {
+  const token = getAdminToken();
+  const headers = new Headers(init?.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  // Expired or invalid admin session: drop it so the admin is sent back to login
+  if (res.status === 401 && token) {
+    setAdminToken(null);
+    window.dispatchEvent(new Event(ADMIN_LOGOUT_EVENT));
+  }
+  return res;
+}
+
+export async function adminLogin(email: string, password: string): Promise<string> {
+  const res = await apiFetch("/api/admin/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || "Login failed");
+  }
+  return ((await res.json()) as { token: string }).token;
 }
 
 // Types mirroring the API response shapes

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { adminLogin } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,20 +9,25 @@ import { Eye, EyeOff, Film } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("admin@cinebook.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const [, setLocation] = useLocation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === "admin@cinebook.com" && password === "admin123") {
-      login();
+    setError("");
+    setSubmitting(true);
+    try {
+      login(await adminLogin(email, password));
       setLocation("/admin/dashboard");
-    } else {
-      setError("Invalid credentials. Use admin@cinebook.com / admin123");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -82,15 +88,10 @@ export default function AdminLogin() {
           
           {error && <p className="text-destructive text-sm font-medium">{error}</p>}
           
-          <Button type="submit" className="w-full h-11" data-testid="btn-admin-submit">
-            Sign In
+          <Button type="submit" className="w-full h-11" disabled={submitting} data-testid="btn-admin-submit">
+            {submitting ? "Signing in…" : "Sign In"}
           </Button>
         </form>
-        
-        <div className="mt-6 text-center text-xs text-muted-foreground">
-          <p>Demo Credentials:</p>
-          <p>admin@cinebook.com / admin123</p>
-        </div>
       </motion.div>
     </div>
   );

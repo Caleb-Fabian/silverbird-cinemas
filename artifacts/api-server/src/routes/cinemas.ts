@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAdmin } from "../lib/auth";
 import { db, cinemasTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
@@ -13,7 +14,7 @@ router.get("/cinemas", async (_req, res) => {
   }
 });
 
-router.post("/cinemas", async (req, res) => {
+router.post("/cinemas", requireAdmin, async (req, res) => {
   try {
     const { name, address, city } = req.body;
     if (!name || !address || !city) { res.status(400).json({ error: "Missing required fields" }); return; }

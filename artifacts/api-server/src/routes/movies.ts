@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAdmin } from "../lib/auth";
 import { db, moviesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
@@ -59,7 +60,7 @@ router.get("/movies/:id", async (req, res) => {
   }
 });
 
-router.post("/movies", async (req, res) => {
+router.post("/movies", requireAdmin, async (req, res) => {
   try {
     const { title, description, genre, duration, rating, imdbScore, director, cast, posterUrl, bannerUrl, trailerUrl, status, releaseDate } = req.body;
     if (!title || !description || !genre || !duration || !rating || !releaseDate) {
@@ -84,7 +85,7 @@ router.post("/movies", async (req, res) => {
   }
 });
 
-router.put("/movies/:id", async (req, res) => {
+router.put("/movies/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) { res.status(400).json({ error: "Invalid movie id" }); return; }
@@ -112,7 +113,7 @@ router.put("/movies/:id", async (req, res) => {
   }
 });
 
-router.delete("/movies/:id", async (req, res) => {
+router.delete("/movies/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) { res.status(400).json({ error: "Invalid movie id" }); return; }

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { requireAdmin } from "../lib/auth";
 import { db, showtimesTable, cinemasTable, moviesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
@@ -55,7 +56,7 @@ router.get("/showtimes/:id", async (req, res) => {
   }
 });
 
-router.post("/showtimes", async (req, res) => {
+router.post("/showtimes", requireAdmin, async (req, res) => {
   try {
     const { movieId, cinemaId, date, time, price, totalSeats } = req.body;
     if (!movieId || !cinemaId || !date || !time || !price) {
@@ -79,7 +80,7 @@ router.post("/showtimes", async (req, res) => {
   }
 });
 
-router.delete("/showtimes/:id", async (req, res) => {
+router.delete("/showtimes/:id", requireAdmin, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) { res.status(400).json({ error: "Invalid showtime id" }); return; }

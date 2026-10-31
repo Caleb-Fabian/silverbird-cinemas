@@ -1,10 +1,11 @@
 import { Router, type IRouter } from "express";
+import { requireAdmin } from "../lib/auth";
 import { db, bookingsTable, moviesTable, showtimesTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-router.get("/dashboard", async (_req, res) => {
+router.get("/dashboard", requireAdmin, async (_req, res) => {
   try {
     const [revenueRow] = await db
       .select({ total: sql<string>`coalesce(sum(${bookingsTable.totalAmount}), 0)` })
