@@ -19,3 +19,23 @@ export function ThemeToggle() {
     </Button>
   );
 }
+
+// Full-width variant for mobile menus
+export function ThemeToggleRow() {
+  const { theme, setTheme } = useTheme();
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" && document.documentElement.classList.contains("dark"));
+
+  return (
+    <Button
+      variant="ghost"
+      className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      data-testid="btn-theme-toggle-mobile"
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {isDark ? "Light mode" : "Dark mode"}
+    </Button>
+  );
+}

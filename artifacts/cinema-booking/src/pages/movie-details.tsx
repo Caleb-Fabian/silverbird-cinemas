@@ -94,15 +94,19 @@ export default function MovieDetails() {
               </DialogTrigger>
               <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90 border-none">
                 <div className="aspect-video w-full">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={movie.trailerUrl}
-                    title={`${movie.title} Trailer`}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
+                  {movie.trailerUrl.startsWith("/api/uploads/") ? (
+                    <video src={movie.trailerUrl} controls className="w-full h-full" />
+                  ) : (
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={movie.trailerUrl}
+                      title={`${movie.title} Trailer`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  )}
                 </div>
               </DialogContent>
             </Dialog>

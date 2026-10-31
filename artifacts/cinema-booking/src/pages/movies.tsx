@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { MovieCard } from "@/components/movie/MovieCard";
 import { fetchMovies } from "@/lib/api";
-import { mockMovies } from "@/data/mockData";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Film, Search } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 
@@ -13,12 +12,10 @@ export default function Movies() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
 
-  const { data: apiMovies } = useQuery({
+  const { data: movies = [], isLoading } = useQuery({
     queryKey: ["movies"],
     queryFn: fetchMovies,
   });
-
-  const movies = apiMovies && apiMovies.length > 0 ? apiMovies : mockMovies;
 
   const filteredMovies = movies.filter(movie => {
     const matchesSearch = movie.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -60,7 +57,16 @@ export default function Movies() {
           </div>
         </motion.div>
 
-        {filteredMovies.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">Loading movies…</p>
+          </div>
+        ) : movies.length === 0 ? (
+          <div className="flex flex-col items-center text-center py-20 gap-4">
+            <Film className="h-12 w-12 text-muted-foreground" />
+            <p className="text-xl text-muted-foreground">No available movie</p>
+          </div>
+        ) : filteredMovies.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredMovies.map((movie, idx) => (
               <MovieCard key={movie.id} movie={movie} index={idx} />

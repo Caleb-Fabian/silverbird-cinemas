@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Clock, Star } from "lucide-react";
-import { Movie } from "@/data/mockData";
+import type { MovieAPI as Movie } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 

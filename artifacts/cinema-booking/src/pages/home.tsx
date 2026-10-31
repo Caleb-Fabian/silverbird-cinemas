@@ -5,57 +5,58 @@ import { Navbar } from "@/components/layout/Navbar";
 import { MovieCard } from "@/components/movie/MovieCard";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlayCircle, ArrowRight } from "lucide-react";
+import { PlayCircle, ArrowRight, Film } from "lucide-react";
 import { fetchMovies, type MovieAPI } from "@/lib/api";
-import { mockMovies } from "@/data/mockData";
 
-// Adapt MovieAPI shape to the Movie shape expected by MovieCard
-function toCardMovie(m: MovieAPI) {
-  return {
-    id: m.id,
-    title: m.title,
-    description: m.description,
-    genre: m.genre,
-    duration: m.duration,
-    rating: m.rating,
-    imdbScore: m.imdbScore,
-    director: m.director,
-    cast: m.cast,
-    poster: m.poster,
-    posterFallback: m.posterFallback,
-    banner: m.banner,
-    bannerFallback: m.bannerFallback,
-    trailerUrl: m.trailerUrl,
-    status: m.status,
-    releaseDate: m.releaseDate,
-  };
+function Footer() {
+  return (
+    <footer className="py-8 border-t bg-background">
+      <div className="container mx-auto px-4 md:px-6 text-center text-sm text-muted-foreground">
+        <p>© {new Date().getFullYear()} Silverbird Cinemas. All rights reserved.</p>
+      </div>
+    </footer>
+  );
 }
 
 export default function Home() {
-  const { data: apiMovies } = useQuery({
+  const { data: movies = [], isLoading } = useQuery({
     queryKey: ["movies"],
     queryFn: fetchMovies,
   });
 
-  const movies = apiMovies && apiMovies.length > 0
-    ? apiMovies.map(toCardMovie)
-    : mockMovies;
-
   const nowShowing = movies.filter(m => m.status === "now-showing");
   const comingSoon = movies.filter(m => m.status === "coming-soon");
 
-  const [featuredMovie, setFeaturedMovie] = useState<typeof movies[0] | null>(null);
+  const [featuredMovie, setFeaturedMovie] = useState<MovieAPI | null>(null);
 
   const displayed = featuredMovie ?? nowShowing[0] ?? movies[0];
 
-  const handleSelectMovie = (movie: typeof movies[0]) => {
+  const handleSelectMovie = (movie: MovieAPI) => {
     if (!featuredMovie || movie.id !== featuredMovie.id) {
       setFeaturedMovie(movie);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
-  if (!displayed) return null;
+  if (!displayed) {
+    return (
+      <div className="min-h-dvh flex flex-col">
+        <Navbar />
+        <main className="flex-1 flex flex-col items-center justify-center gap-4 px-4 text-center">
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading movies…</p>
+          ) : (
+            <>
+              <Film className="h-14 w-14 text-muted-foreground" />
+              <h1 className="text-2xl font-bold">No available movie</h1>
+              <p className="text-muted-foreground">Check back soon for new releases.</p>
+            </>
+          )}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -179,16 +180,20 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {nowShowing.slice(0, 4).map((movie, idx) => (
-              <MovieCard
-                key={movie.id}
-                movie={movie}
-                index={idx}
-                onSelect={handleSelectMovie}
-              />
-            ))}
-          </div>
+          {nowShowing.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {nowShowing.slice(0, 4).map((movie, idx) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  index={idx}
+                  onSelect={handleSelectMovie}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="py-10 text-center text-muted-foreground">No movies showing right now.</p>
+          )}
 
           <div className="mt-8 flex justify-center md:hidden">
             <Link href="/movies">
@@ -198,6 +203,7 @@ export default function Home() {
         </section>
 
         {/* Coming Soon Section */}
+        {comingSoon.length > 0 && (
         <section className="py-16 md:py-20 bg-muted/30">
           <div className="container mx-auto px-4 md:px-6">
             <div className="mb-8">
@@ -217,13 +223,10 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
       </main>
 
-      <footer className="py-8 border-t bg-background">
-        <div className="container mx-auto px-4 md:px-6 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Silverbird Cinemas. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

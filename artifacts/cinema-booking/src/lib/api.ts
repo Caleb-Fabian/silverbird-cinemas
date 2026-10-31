@@ -178,6 +178,17 @@ export async function fetchAllBookings(): Promise<AdminBookingAPI[]> {
   return res.json();
 }
 
+export async function uploadFile(file: File): Promise<string> {
+  const data = new FormData();
+  data.append("file", file);
+  const res = await fetch("/api/uploads", { method: "POST", body: data });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || "Failed to upload file");
+  }
+  return ((await res.json()) as { url: string }).url;
+}
+
 export async function createMovie(body: MovieCreateBody): Promise<MovieAPI> {
   const res = await fetch("/api/movies", {
     method: "POST",
