@@ -8,6 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 
+// YouTube refuses to play watch/share links inside an iframe; convert them to the embed form
+function toEmbedUrl(url: string) {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
 export default function MovieDetails() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
@@ -94,19 +100,15 @@ export default function MovieDetails() {
               </DialogTrigger>
               <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black/90 border-none">
                 <div className="aspect-video w-full">
-                  {movie.trailerUrl.startsWith("/api/uploads/") ? (
-                    <video src={movie.trailerUrl} controls className="w-full h-full" />
-                  ) : (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={movie.trailerUrl}
-                      title={`${movie.title} Trailer`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  )}
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={toEmbedUrl(movie.trailerUrl)}
+                    title={`${movie.title} Trailer`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
               </DialogContent>
             </Dialog>

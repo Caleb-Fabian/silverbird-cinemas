@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  apiFetch,
   fetchMovies,
   fetchCinemas,
   createShowtime,
@@ -19,7 +20,7 @@ import { Plus, MapPin, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 async function fetchAllShowtimes(): Promise<ShowtimeAPI[]> {
-  const res = await fetch("/api/showtimes");
+  const res = await apiFetch("/api/showtimes");
   if (!res.ok) throw new Error("Failed to fetch showtimes");
   return res.json();
 }

@@ -6,7 +6,6 @@ import {
   createMovie,
   updateMovie,
   deleteMovie,
-  uploadFile,
   type MovieAPI,
   type MovieCreateBody,
 } from "@/lib/api";
@@ -17,74 +16,47 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
 
-function MediaUpload({
+function ImageLinkInput({
   id,
   label,
-  kind,
   value,
   onChange,
-  onUploadingChange,
 }: {
   id: string;
   label: string;
-  kind: "image" | "video";
   value?: string;
   onChange: (url: string) => void;
-  onUploadingChange: (uploading: boolean) => void;
 }) {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    setError(null);
-    setUploading(true);
-    onUploadingChange(true);
-    try {
-      onChange(await uploadFile(file));
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setUploading(false);
-      onUploadingChange(false);
-    }
-  }
+  const [broken, setBroken] = useState(false);
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      {value ? (
-        <div className="relative w-fit">
-          {kind === "image" ? (
-            <img src={value} alt={label} className="max-h-40 rounded border" />
-          ) : (
-            <video src={value} controls className="max-h-48 rounded border" />
-          )}
-          <Button
-            type="button"
-            variant="secondary"
-            size="icon"
-            className="absolute top-1 right-1 h-7 w-7"
-            onClick={() => onChange("")}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      ) : (
-        <Input
-          id={id}
-          type="file"
-          accept={kind === "image" ? "image/jpeg,image/png,image/webp,image/gif" : "video/mp4,video/webm,video/quicktime"}
-          disabled={uploading}
-          onChange={handleFile}
+      <Label htmlFor={id}>{label} link</Label>
+      <Input
+        id={id}
+        type="url"
+        placeholder="https://example.com/image.jpg"
+        value={value}
+        onChange={(e) => {
+          setBroken(false);
+          onChange(e.target.value.trim());
+        }}
+      />
+      {value && !broken && (
+        <img
+          src={value}
+          alt={label}
+          className="max-h-40 w-fit rounded border"
+          onError={() => setBroken(true)}
         />
       )}
-      {uploading && <p className="text-sm text-muted-foreground">Uploading…</p>}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {value && broken && (
+        <p className="text-sm text-destructive">
+          This link doesn't load as an image. Use a direct image link (ending in .jpg, .png, .webp).
+        </p>
+      )}
     </div>
   );
 }
@@ -111,12 +83,6 @@ export default function AdminMovies() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<MovieCreateBody>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploading, setUploadingState] = useState<Record<string, boolean>>({});
-  const isUploading = Object.values(uploading).some(Boolean);
-
-  function setUploading(field: string, value: boolean) {
-    setUploadingState((prev) => ({ ...prev, [field]: value }));
-  }
 
   const { data: movies = [], isLoading } = useQuery({
     queryKey: ["movies"],
@@ -292,30 +258,28 @@ export default function AdminMovies() {
                   onChange={(e) => set("cast", e.target.value)}
                 />
               </div>
-              <MediaUpload
+              <ImageLinkInput
                 id="poster"
                 label="Poster"
-                kind="image"
                 value={form.posterUrl}
                 onChange={(url) => set("posterUrl", url)}
-                onUploadingChange={(v) => setUploading("poster", v)}
               />
-              <MediaUpload
+              <ImageLinkInput
                 id="banner"
                 label="Banner"
-                kind="image"
                 value={form.bannerUrl}
                 onChange={(url) => set("bannerUrl", url)}
-                onUploadingChange={(v) => setUploading("banner", v)}
               />
-              <MediaUpload
-                id="trailer"
-                label="Trailer"
-                kind="video"
-                value={form.trailerUrl}
-                onChange={(url) => set("trailerUrl", url)}
-                onUploadingChange={(v) => setUploading("trailer", v)}
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="trailer">Trailer link (YouTube)</Label>
+                <Input
+                  id="trailer"
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={form.trailerUrl}
+                  onChange={(e) => set("trailerUrl", e.target.value.trim())}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Status</Label>
@@ -346,8 +310,8 @@ export default function AdminMovies() {
                 <p className="text-sm text-destructive">{(saveMutation.error as Error).message}</p>
               )}
               <div className="flex justify-end pt-2">
-                <Button type="submit" disabled={saveMutation.isPending || isUploading}>
-                  {isUploading ? "Uploading…" : saveMutation.isPending ? "Saving…" : editingId ? "Save Changes" : "Save Movie"}
+                <Button type="submit" disabled={saveMutation.isPending}>
+                  {saveMutation.isPending ? "Saving…" : editingId ? "Save Changes" : "Save Movie"}
                 </Button>
               </div>
             </form>

@@ -27,9 +27,6 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Admin-uploaded media
-artifacts/api-server/uploads
-
 # Environment variables
 .env
 .env.local

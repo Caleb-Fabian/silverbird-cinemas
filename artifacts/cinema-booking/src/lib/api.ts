@@ -1,3 +1,10 @@
+// Backend origin, e.g. https://your-app.onrender.com. Empty in dev, where Vite proxies /api.
+const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
+export function apiFetch(path: string, init?: RequestInit) {
+  return fetch(`${API_BASE}${path}`, init);
+}
+
 // Types mirroring the API response shapes
 
 export interface MovieAPI {
@@ -64,31 +71,31 @@ export interface BookingAPI {
 }
 
 export async function fetchMovies(): Promise<MovieAPI[]> {
-  const res = await fetch("/api/movies");
+  const res = await apiFetch("/api/movies");
   if (!res.ok) throw new Error("Failed to fetch movies");
   return res.json();
 }
 
 export async function fetchMovie(id: string): Promise<MovieAPI> {
-  const res = await fetch(`/api/movies/${id}`);
+  const res = await apiFetch(`/api/movies/${id}`);
   if (!res.ok) throw new Error("Failed to fetch movie");
   return res.json();
 }
 
 export async function fetchShowtimesByMovie(movieId: string): Promise<ShowtimeAPI[]> {
-  const res = await fetch(`/api/showtimes?movieId=${movieId}`);
+  const res = await apiFetch(`/api/showtimes?movieId=${movieId}`);
   if (!res.ok) throw new Error("Failed to fetch showtimes");
   return res.json();
 }
 
 export async function fetchShowtime(id: string): Promise<ShowtimeAPI> {
-  const res = await fetch(`/api/showtimes/${id}`);
+  const res = await apiFetch(`/api/showtimes/${id}`);
   if (!res.ok) throw new Error("Failed to fetch showtime");
   return res.json();
 }
 
 export async function createBooking(body: BookingCreateBody): Promise<BookingAPI> {
-  const res = await fetch("/api/bookings", {
+  const res = await apiFetch("/api/bookings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -161,36 +168,25 @@ export interface ShowtimeCreateBody {
 // ── Admin API functions ────────────────────────────────────────────────────────
 
 export async function fetchCinemas(): Promise<CinemaAPI[]> {
-  const res = await fetch("/api/cinemas");
+  const res = await apiFetch("/api/cinemas");
   if (!res.ok) throw new Error("Failed to fetch cinemas");
   return res.json();
 }
 
 export async function fetchDashboard(): Promise<DashboardAPI> {
-  const res = await fetch("/api/dashboard");
+  const res = await apiFetch("/api/dashboard");
   if (!res.ok) throw new Error("Failed to fetch dashboard");
   return res.json();
 }
 
 export async function fetchAllBookings(): Promise<AdminBookingAPI[]> {
-  const res = await fetch("/api/bookings");
+  const res = await apiFetch("/api/bookings");
   if (!res.ok) throw new Error("Failed to fetch bookings");
   return res.json();
 }
 
-export async function uploadFile(file: File): Promise<string> {
-  const data = new FormData();
-  data.append("file", file);
-  const res = await fetch("/api/uploads", { method: "POST", body: data });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error || "Failed to upload file");
-  }
-  return ((await res.json()) as { url: string }).url;
-}
-
 export async function createMovie(body: MovieCreateBody): Promise<MovieAPI> {
-  const res = await fetch("/api/movies", {
+  const res = await apiFetch("/api/movies", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -203,7 +199,7 @@ export async function createMovie(body: MovieCreateBody): Promise<MovieAPI> {
 }
 
 export async function updateMovie(id: string, body: Partial<MovieCreateBody>): Promise<MovieAPI> {
-  const res = await fetch(`/api/movies/${id}`, {
+  const res = await apiFetch(`/api/movies/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -216,12 +212,12 @@ export async function updateMovie(id: string, body: Partial<MovieCreateBody>): P
 }
 
 export async function deleteMovie(id: string): Promise<void> {
-  const res = await fetch(`/api/movies/${id}`, { method: "DELETE" });
+  const res = await apiFetch(`/api/movies/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete movie");
 }
 
 export async function createShowtime(body: ShowtimeCreateBody): Promise<ShowtimeAPI> {
-  const res = await fetch("/api/showtimes", {
+  const res = await apiFetch("/api/showtimes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -234,6 +230,6 @@ export async function createShowtime(body: ShowtimeCreateBody): Promise<Showtime
 }
 
 export async function deleteShowtime(id: string): Promise<void> {
-  const res = await fetch(`/api/showtimes/${id}`, { method: "DELETE" });
+  const res = await apiFetch(`/api/showtimes/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to delete showtime");
 }
