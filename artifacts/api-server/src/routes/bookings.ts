@@ -1,19 +1,44 @@
 import { Router, type IRouter } from "express";
-import { db, bookingsTable, showtimesTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, bookingsTable, showtimesTable, moviesTable, cinemasTable } from "@workspace/db";
+import { eq, desc } from "drizzle-orm";
 
 const router: IRouter = Router();
 
 function generateBookingReference(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "SB-";
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
+  for (let i = 0; i < 6; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
   return result;
 }
 
-// POST /bookings
+router.get("/bookings", async (_req, res) => {
+  try {
+    const rows = await db
+      .select({ booking: bookingsTable, showtime: showtimesTable, movie: moviesTable, cinema: cinemasTable })
+      .from(bookingsTable)
+      .innerJoin(showtimesTable, eq(bookingsTable.showtimeId, showtimesTable.id))
+      .innerJoin(moviesTable, eq(showtimesTable.movieId, moviesTable.id))
+      .innerJoin(cinemasTable, eq(showtimesTable.cinemaId, cinemasTable.id))
+      .orderBy(desc(bookingsTable.createdAt));
+
+    res.json(rows.map(({ booking, showtime, movie, cinema }) => ({
+      id: String(booking.id),
+      bookingReference: booking.bookingReference,
+      customerName: booking.customerName,
+      customerEmail: booking.customerEmail,
+      selectedSeats: JSON.parse(booking.selectedSeats),
+      totalAmount: Number(booking.totalAmount),
+      status: booking.status,
+      createdAt: booking.createdAt,
+      movie: { id: String(movie.id), title: movie.title, poster: movie.posterUrl ?? "" },
+      cinema: { id: String(cinema.id), name: cinema.name },
+      showtime: { date: showtime.date, time: showtime.time },
+    })));
+  } catch {
+    res.status(500).json({ error: "Failed to fetch bookings" });
+  }
+});
+
 router.post("/bookings", async (req, res) => {
   try {
     const { showtimeId, customerName, customerEmail, customerPhone, selectedSeats } = req.body as {
@@ -25,59 +50,27 @@ router.post("/bookings", async (req, res) => {
     };
 
     if (!showtimeId || !customerName || !customerEmail || !selectedSeats?.length) {
-      res.status(400).json({ error: "Missing required fields: showtimeId, customerName, customerEmail, selectedSeats" });
-      return;
+      res.status(400).json({ error: "Missing required fields" }); return;
     }
 
     const numShowtimeId = Number(showtimeId);
-    if (Number.isNaN(numShowtimeId)) {
-      res.status(400).json({ error: "Invalid showtimeId" });
-      return;
-    }
-
-    // Fetch the showtime to get price and check availability
-    const [showtime] = await db
-      .select()
-      .from(showtimesTable)
-      .where(eq(showtimesTable.id, numShowtimeId))
-      .limit(1);
-
-    if (!showtime) {
-      res.status(404).json({ error: "Showtime not found" });
-      return;
-    }
-
+    const [showtime] = await db.select().from(showtimesTable).where(eq(showtimesTable.id, numShowtimeId)).limit(1);
+    if (!showtime) { res.status(404).json({ error: "Showtime not found" }); return; }
     if (showtime.availableSeats < selectedSeats.length) {
-      res.status(409).json({ error: "Not enough available seats" });
-      return;
+      res.status(409).json({ error: "Not enough available seats" }); return;
     }
 
-    const pricePerSeat = Number(showtime.price);
-    const totalAmount = (pricePerSeat * selectedSeats.length).toFixed(2);
-    const selectedSeatsJson = JSON.stringify(selectedSeats);
+    const totalAmount = (Number(showtime.price) * selectedSeats.length).toFixed(2);
     const bookingReference = generateBookingReference();
 
-    // Decrement available seats and insert booking in parallel
-    await db
-      .update(showtimesTable)
-      .set({
-        availableSeats: showtime.availableSeats - selectedSeats.length,
-      })
-      .where(eq(showtimesTable.id, numShowtimeId));
+    await db.update(showtimesTable).set({ availableSeats: showtime.availableSeats - selectedSeats.length }).where(eq(showtimesTable.id, numShowtimeId));
 
-    const [booking] = await db
-      .insert(bookingsTable)
-      .values({
-        showtimeId: numShowtimeId,
-        customerName,
-        customerEmail,
-        customerPhone: customerPhone ?? null,
-        selectedSeats: selectedSeatsJson,
-        totalAmount,
-        status: "confirmed",
-        bookingReference,
-      })
-      .returning();
+    const [booking] = await db.insert(bookingsTable).values({
+      showtimeId: numShowtimeId, customerName, customerEmail,
+      customerPhone: customerPhone ?? null,
+      selectedSeats: JSON.stringify(selectedSeats),
+      totalAmount, status: "confirmed", bookingReference,
+    }).returning();
 
     res.status(201).json({
       id: String(booking.id),
@@ -91,7 +84,7 @@ router.post("/bookings", async (req, res) => {
       bookingReference: booking.bookingReference,
       createdAt: booking.createdAt,
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to create booking" });
   }
 });

@@ -1,131 +1,92 @@
 import { Router, type IRouter } from "express";
 import { db, showtimesTable, cinemasTable, moviesTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
-// GET /showtimes?movieId=:id
+function formatShowtime(showtime: typeof showtimesTable.$inferSelect, cinema: typeof cinemasTable.$inferSelect, movie?: typeof moviesTable.$inferSelect) {
+  return {
+    id: String(showtime.id),
+    movieId: String(showtime.movieId),
+    cinemaId: String(showtime.cinemaId),
+    date: showtime.date,
+    time: showtime.time,
+    price: Number(showtime.price),
+    availableSeats: showtime.availableSeats,
+    totalSeats: showtime.totalSeats,
+    cinema: { id: String(cinema.id), name: cinema.name, address: cinema.address },
+    ...(movie && { movie: { id: String(movie.id), title: movie.title, poster: movie.posterUrl ?? "" } }),
+  };
+}
+
 router.get("/showtimes", async (req, res) => {
   try {
     const movieIdParam = req.query.movieId as string | undefined;
-
-    if (movieIdParam !== undefined) {
-      const movieId = Number(movieIdParam);
-      if (Number.isNaN(movieId)) {
-        res.status(400).json({ error: "Invalid movieId" });
-        return;
-      }
-
-      const rows = await db
-        .select({
-          showtime: showtimesTable,
-          cinema: cinemasTable,
-        })
-        .from(showtimesTable)
-        .innerJoin(cinemasTable, eq(showtimesTable.cinemaId, cinemasTable.id))
-        .where(eq(showtimesTable.movieId, movieId));
-
-      res.json(
-        rows.map(({ showtime, cinema }) => ({
-          id: String(showtime.id),
-          movieId: String(showtime.movieId),
-          cinemaId: String(showtime.cinemaId),
-          date: showtime.date,
-          time: showtime.time,
-          price: Number(showtime.price),
-          availableSeats: showtime.availableSeats,
-          totalSeats: showtime.totalSeats,
-          cinema: {
-            id: String(cinema.id),
-            name: cinema.name,
-            address: cinema.address,
-          },
-        }))
-      );
-      return;
-    }
-
-    // No filter — return all
-    const rows = await db
-      .select({
-        showtime: showtimesTable,
-        cinema: cinemasTable,
-      })
+    const query = db.select({ showtime: showtimesTable, cinema: cinemasTable, movie: moviesTable })
       .from(showtimesTable)
-      .innerJoin(cinemasTable, eq(showtimesTable.cinemaId, cinemasTable.id));
+      .innerJoin(cinemasTable, eq(showtimesTable.cinemaId, cinemasTable.id))
+      .innerJoin(moviesTable, eq(showtimesTable.movieId, moviesTable.id));
 
-    res.json(
-      rows.map(({ showtime, cinema }) => ({
-        id: String(showtime.id),
-        movieId: String(showtime.movieId),
-        cinemaId: String(showtime.cinemaId),
-        date: showtime.date,
-        time: showtime.time,
-        price: Number(showtime.price),
-        availableSeats: showtime.availableSeats,
-        totalSeats: showtime.totalSeats,
-        cinema: {
-          id: String(cinema.id),
-          name: cinema.name,
-          address: cinema.address,
-        },
-      }))
-    );
-  } catch (err) {
+    const rows = movieIdParam
+      ? await query.where(eq(showtimesTable.movieId, Number(movieIdParam)))
+      : await query;
+
+    res.json(rows.map(({ showtime, cinema, movie }) => formatShowtime(showtime, cinema, movie)));
+  } catch {
     res.status(500).json({ error: "Failed to fetch showtimes" });
   }
 });
 
-// GET /showtimes/:id
 router.get("/showtimes/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
-      res.status(400).json({ error: "Invalid showtime id" });
-      return;
-    }
-
-    const rows = await db
-      .select({
-        showtime: showtimesTable,
-        cinema: cinemasTable,
-        movie: moviesTable,
-      })
+    if (Number.isNaN(id)) { res.status(400).json({ error: "Invalid showtime id" }); return; }
+    const rows = await db.select({ showtime: showtimesTable, cinema: cinemasTable, movie: moviesTable })
       .from(showtimesTable)
       .innerJoin(cinemasTable, eq(showtimesTable.cinemaId, cinemasTable.id))
       .innerJoin(moviesTable, eq(showtimesTable.movieId, moviesTable.id))
       .where(eq(showtimesTable.id, id))
       .limit(1);
-
-    if (rows.length === 0) {
-      res.status(404).json({ error: "Showtime not found" });
-      return;
-    }
-
+    if (!rows.length) { res.status(404).json({ error: "Showtime not found" }); return; }
     const { showtime, cinema, movie } = rows[0];
-
-    res.json({
-      id: String(showtime.id),
-      movieId: String(showtime.movieId),
-      cinemaId: String(showtime.cinemaId),
-      date: showtime.date,
-      time: showtime.time,
-      price: Number(showtime.price),
-      availableSeats: showtime.availableSeats,
-      totalSeats: showtime.totalSeats,
-      cinema: {
-        id: String(cinema.id),
-        name: cinema.name,
-        address: cinema.address,
-      },
-      movie: {
-        id: String(movie.id),
-        title: movie.title,
-        poster: movie.posterUrl ?? "",
-      },
-    });
-  } catch (err) {
+    res.json(formatShowtime(showtime, cinema, movie));
+  } catch {
     res.status(500).json({ error: "Failed to fetch showtime" });
+  }
+});
+
+router.post("/showtimes", async (req, res) => {
+  try {
+    const { movieId, cinemaId, date, time, price, totalSeats } = req.body;
+    if (!movieId || !cinemaId || !date || !time || !price) {
+      res.status(400).json({ error: "Missing required fields" }); return;
+    }
+    const seats = Number(totalSeats) || 100;
+    const [showtime] = await db.insert(showtimesTable).values({
+      movieId: Number(movieId),
+      cinemaId: Number(cinemaId),
+      date, time,
+      price: String(price),
+      totalSeats: seats,
+      availableSeats: seats,
+    }).returning();
+
+    const [cinema] = await db.select().from(cinemasTable).where(eq(cinemasTable.id, showtime.cinemaId)).limit(1);
+    const [movie] = await db.select().from(moviesTable).where(eq(moviesTable.id, showtime.movieId)).limit(1);
+    res.status(201).json(formatShowtime(showtime, cinema, movie));
+  } catch {
+    res.status(500).json({ error: "Failed to create showtime" });
+  }
+});
+
+router.delete("/showtimes/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) { res.status(400).json({ error: "Invalid showtime id" }); return; }
+    await db.delete(showtimesTable).where(eq(showtimesTable.id, id));
+    res.json({ success: true });
+  } catch {
+    res.status(500).json({ error: "Failed to delete showtime" });
   }
 });
 

@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @workspace/cinema-booking",
+    "api": "npm run dev -w @workspace/api-server",
     "build": "npm run typecheck && npm run build --workspaces --if-present",
     "typecheck": "tsc --build && npm run typecheck --workspaces --if-present"
   },

@@ -1,16 +1,18 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { mockBookings, mockMovies, mockCinemas, mockShowtimes } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllBookings } from "@/lib/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 function formatNaira(amount: number) {
-  return `₦${amount.toLocaleString('en-NG')}`;
+  return `₦${amount.toLocaleString("en-NG")}`;
 }
 
 export default function AdminBookings() {
-  const sortedBookings = [...mockBookings].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ["bookings"],
+    queryFn: fetchAllBookings,
+  });
 
   return (
     <AdminLayout>
@@ -23,7 +25,7 @@ export default function AdminBookings() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Booking ID</TableHead>
+              <TableHead>Reference</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Movie & Details</TableHead>
               <TableHead>Seats</TableHead>
@@ -32,44 +34,58 @@ export default function AdminBookings() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedBookings.map((booking) => {
-              const movie = mockMovies.find(m => m.id === booking.movieId);
-              const cinema = mockCinemas.find(c => c.id === booking.cinemaId);
-              const showtime = mockShowtimes.find(s => s.id === booking.showtimeId);
-              
-              return (
-                <TableRow key={booking.id}>
-                  <TableCell className="font-mono text-xs font-medium text-muted-foreground">
-                    #{booking.id.toUpperCase()}
-                  </TableCell>
-                  <TableCell className="font-medium">{booking.customerName}</TableCell>
-                  <TableCell>
-                    <div className="font-medium text-primary">{movie?.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {cinema?.name} • {showtime?.date} {showtime?.time}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1 max-w-[120px]">
-                      {booking.seats.map(seat => (
-                        <span key={seat} className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium">
-                          {seat}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-bold">{formatNaira(booking.totalPrice)}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={booking.status === 'confirmed' ? 'default' : 'destructive'} 
-                      className="capitalize"
-                    >
-                      {booking.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                  Loading…
+                </TableCell>
+              </TableRow>
+            )}
+            {!isLoading && bookings.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
+                  No bookings yet
+                </TableCell>
+              </TableRow>
+            )}
+            {bookings.map((booking) => (
+              <TableRow key={booking.id}>
+                <TableCell className="font-mono text-xs font-medium text-muted-foreground">
+                  {booking.bookingReference}
+                </TableCell>
+                <TableCell>
+                  <div className="font-medium">{booking.customerName}</div>
+                  <div className="text-xs text-muted-foreground">{booking.customerEmail}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="font-medium text-primary">{booking.movie.title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {booking.cinema.name} • {booking.showtime.date} {booking.showtime.time}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1 max-w-[120px]">
+                    {booking.selectedSeats.map((seat) => (
+                      <span
+                        key={seat}
+                        className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium"
+                      >
+                        {seat}
+                      </span>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell className="font-bold">{formatNaira(booking.totalAmount)}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={booking.status === "confirmed" ? "default" : "destructive"}
+                    className="capitalize"
+                  >
+                    {booking.status}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

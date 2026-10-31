@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Navbar } from "@/components/layout/Navbar";
 import { useBooking } from "@/hooks/use-booking";
-import { mockMovies, mockShowtimes, mockCinemas } from "@/data/mockData";
+import { fetchShowtime, fetchMovie, createBooking } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,71 +20,107 @@ export default function BookingSummary() {
   const { booking, clearBooking } = useBooking();
   const { toast } = useToast();
 
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+
   useEffect(() => {
     if (booking.selectedSeats.length === 0) {
       setLocation("/");
     }
   }, [booking, setLocation]);
 
+  const { data: showtime } = useQuery({
+    queryKey: ["showtime", booking.showtimeId],
+    queryFn: () => fetchShowtime(booking.showtimeId!),
+    enabled: !!booking.showtimeId,
+  });
+
+  const { data: movie } = useQuery({
+    queryKey: ["movie", booking.movieId],
+    queryFn: () => fetchMovie(booking.movieId!),
+    enabled: !!booking.movieId,
+  });
+
+  const { mutate: submitBooking, isPending } = useMutation({
+    mutationFn: () =>
+      createBooking({
+        showtimeId: booking.showtimeId!,
+        customerName: name,
+        customerEmail: email,
+        selectedSeats: booking.selectedSeats,
+      }),
+    onSuccess: (data) => {
+      toast({
+        title: "Booking Confirmed!",
+        description: `Your reference is ${data.bookingReference}. Tickets sent to ${email}.`,
+        duration: 6000,
+      });
+      clearBooking();
+      setTimeout(() => setLocation("/"), 2500);
+    },
+    onError: (err: Error) => {
+      toast({
+        title: "Booking Failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (booking.selectedSeats.length === 0) return null;
 
-  const movie = mockMovies.find(m => m.id === booking.movieId) || mockMovies[0];
-  const showtime = mockShowtimes.find(s => s.id === booking.showtimeId) || mockShowtimes[0];
-  const cinema = mockCinemas.find(c => c.id === showtime?.cinemaId) || mockCinemas[0];
-
+  const cinema = showtime?.cinema;
   const subtotal = booking.totalPrice;
-  const fees = booking.selectedSeats.length * 500; // ₦500 convenience fee per ticket
+  const fees = booking.selectedSeats.length * 500;
   const total = subtotal + fees;
   const pricePerTicket = booking.selectedSeats.length > 0 ? subtotal / booking.selectedSeats.length : 3500;
 
   const handlePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    toast({
-      title: "Booking Confirmed!",
-      description: "Your tickets have been sent to your email.",
-      duration: 5000,
-    });
-    
-    clearBooking();
-    setTimeout(() => setLocation("/"), 2000);
+    submitBooking();
   };
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-muted/20">
+    <div className="min-h-dvh flex flex-col bg-muted/20">
       <Navbar />
-      
+
       <main className="flex-1 container mx-auto px-4 md:px-6 py-8 max-w-5xl">
-        <Button 
-          variant="ghost" 
-          onClick={() => setLocation(`/booking/seats/${movie.id}/${showtime.id}`)}
+        <Button
+          variant="ghost"
+          onClick={() => setLocation(`/booking/seats/${booking.movieId}/${booking.showtimeId}`)}
           className="mb-6 -ml-4 text-muted-foreground"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Seats
         </Button>
 
         <div className="flex flex-col md:flex-row gap-8">
-          
+
           {/* Order Details */}
           <div className="flex-1 order-2 md:order-1">
             <div className="bg-card border rounded-xl p-6 shadow-sm mb-6">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Ticket className="h-6 w-6 text-primary" /> 
+                <Ticket className="h-6 w-6 text-primary" />
                 Order Details
               </h2>
-              
+
               <div className="flex gap-6 mb-6 pb-6 border-b">
-                <img src={movie.poster} alt={movie.title} className="w-24 h-36 object-cover rounded shadow-md" />
+                {movie?.poster && (
+                  <img src={movie.poster} alt={movie.title} className="w-24 h-36 object-cover rounded shadow-md" />
+                )}
                 <div className="flex flex-col justify-center">
-                  <h3 className="text-xl font-bold">{movie.title}</h3>
+                  <h3 className="text-xl font-bold">{movie?.title ?? "Loading..."}</h3>
                   <div className="text-muted-foreground mt-2 space-y-1">
-                    <p>{cinema.name}</p>
-                    <p>{new Date(showtime.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                    <p className="font-medium text-foreground">{showtime.time}</p>
+                    <p>{cinema?.name ?? ""}</p>
+                    {showtime && (
+                      <>
+                        <p>{new Date(showtime.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                        <p className="font-medium text-foreground">{showtime.time}</p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tickets ({booking.selectedSeats.length} × {formatNaira(pricePerTicket)})</span>
@@ -106,33 +143,47 @@ export default function BookingSummary() {
           </div>
 
           {/* Payment Form */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full md:w-[400px] order-1 md:order-2 shrink-0"
+            className="w-full md:w-100 order-1 md:order-2 shrink-0"
           >
             <div className="bg-card border rounded-xl p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-primary" /> 
+                <CreditCard className="h-5 w-5 text-primary" />
                 Payment
               </h2>
-              
+
               <form onSubmit={handlePayment} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" required />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name on Card</Label>
-                  <Input id="name" type="text" placeholder="John Doe" required />
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                  />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="card">Card Number</Label>
                   <Input id="card" type="text" placeholder="0000 0000 0000 0000" required />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="exp">Expiry (MM/YY)</Label>
@@ -143,10 +194,16 @@ export default function BookingSummary() {
                     <Input id="cvv" type="text" placeholder="123" required />
                   </div>
                 </div>
-                
+
                 <div className="pt-4">
-                  <Button type="submit" size="lg" className="w-full h-12 text-lg" data-testid="btn-confirm-pay">
-                    Pay {formatNaira(total)}
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full h-12 text-lg"
+                    disabled={isPending}
+                    data-testid="btn-confirm-pay"
+                  >
+                    {isPending ? "Processing..." : `Pay ${formatNaira(total)}`}
                   </Button>
                   <p className="text-center flex justify-center items-center gap-1 text-xs text-muted-foreground mt-4">
                     <CheckCircle2 className="h-3 w-3" /> Secure encrypted payment
